@@ -20,7 +20,7 @@ express_app.listen(express_port, () => {
 });
 
 // Discord Coding
-const { Client, IntentsBitField, ActivityType } = require('discord.js');
+const { Client, IntentsBitField, ActivityType, ButtonBuilder, ButtonStyle, ActionRowBuilder } = require('discord.js');
 const { EmbedBuilder } = require('discord.js');
 const client = new Client({
     intents: [
@@ -48,7 +48,7 @@ client.on('messageCreate', async (msg) => {
     const channel = client.channels.cache.get(msg.channelId);
 
     if (msg.channelId == config.log_channel.command_channel) {
-        if (msg.content.startsWith('!rm-allInvite')) {
+        if (msg.content.startsWith('!iv-remove')) {
             const guild = msg.guild;
             if (guild) {
                 try {
@@ -61,12 +61,12 @@ client.on('messageCreate', async (msg) => {
                     // msg.reply(`Remove total: **${invites.size}** code`);
                     setTimeout(() => {
                         msg.delete();
-                    }, 2000);
+                    }, 1000);
                 } catch (err) {
                     console.log(err);
                 }
             }
-        } else if (msg.content.startsWith('!create-invite')) {
+        } else if (msg.content.startsWith('!iv-create')) {
             const invite = await channel.createInvite({
                 maxAge: 86400,
                 maxUses: 1,
@@ -74,7 +74,7 @@ client.on('messageCreate', async (msg) => {
             console.log(`Invite create: ${invite.url}`)
             setTimeout(() => {
                 msg.delete();
-            }, 2000);
+            }, 1000);
         }
     }
 
@@ -99,6 +99,59 @@ function isBannedAccont(id) {
     }
     return false
 }
+
+client.on('interactionCreate', async (interaction) => {
+
+    if (interaction.isButton()) {
+        if (interaction.customId == 'delete-invite-btn') {
+            const inviteCode = interaction.message.embeds[0].fields[0].value;
+            const guild = interaction.guild;
+            if (guild) {
+                try {
+                    let btn_text = `Invite link has expired or not found`;
+                    const invites = await guild.invites.fetch();
+                    await invites.forEach((invite) => {
+                        if (invite.code == inviteCode) {
+                            invite.delete()
+                            btn_text = `Deleted by ${interaction.user.tag}`
+                            console.log(`Remove invite code: ${invite.code}`)
+                        }
+                    });
+
+                    const updated_delete_invite = new ButtonBuilder()
+                        .setCustomId('delete-invite-btn')
+                        .setLabel(btn_text)
+                        .setStyle(ButtonStyle.Danger)
+                        .setDisabled(true)
+
+                    const updatedButton = new ActionRowBuilder().addComponents(updated_delete_invite)
+
+                    const existingEmbed = interaction.message.embeds[0];
+                    const updated_embed_invite = new EmbedBuilder(existingEmbed)
+                        .setColor(0x555555)
+
+                    await interaction.message.edit({ components: [updatedButton], embeds: [updated_embed_invite] })
+
+                    if (btn_text.startsWith('Deleted')) {
+                        interaction.reply({
+                            content: `Remove invite code **${inviteCode}** success.`,
+                            ephemeral: true
+                        });
+                    } else {
+                        interaction.reply({
+                            content: `Invite link has expired or not found`,
+                            ephemeral: true
+                        });
+                    }
+
+                } catch (err) {
+                    console.log(err);
+                }
+            }
+        }
+    }
+
+})
 
 client.on('inviteCreate', async (invite) => {
     if (invite) {
@@ -149,11 +202,19 @@ client.on('inviteCreate', async (invite) => {
             .setTimestamp(invite.createdTimestamp)
             .setFooter({ text: 'Developed by JNP', iconURL: 'https://media.discordapp.net/attachments/966527454200070185/993100139109564436/jp.png' });
 
+        const delete_invite = new ButtonBuilder()
+            .setCustomId('delete-invite-btn')
+            .setLabel('Delete')
+            .setStyle(ButtonStyle.Danger)
+        
+        const invite_button = new ActionRowBuilder().addComponents(delete_invite)
+
         if (danger_invite.danger) {
             await invite.delete()
-            channel.send({ content: `<@&1159176845766434836>`, embeds: [embed] })
-        } else {
+            // channel.send({ content: `<@&1159176845766434836>`, embeds: [embed] })
             channel.send({ embeds: [embed] });
+        } else {
+            channel.send({ embeds: [embed], components: [invite_button] });
         }
 
     }
