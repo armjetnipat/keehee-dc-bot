@@ -1,0 +1,12 @@
+{
+    "discord_token": "MTE4NDcwMzQxNTE0Njc3ODYzNA.GIENRC.fIz4CbCRxZ4_x7WWp-fTfceNCOi0czf3QYKavA",
+    "danger_account": ["702217134297841754"],
+    "banned_account": ["695248091602747403"],
+    "log_channel": {
+        "command_channel": "1184743633409282088",
+        "invite_create": "1184743633409282088",
+        "invite_delete": "1184743633409282088",
+        "banned_join_channel": "1184743633409282088"
+    },
+    "banned_channel": "1186054653339783178"
+}
