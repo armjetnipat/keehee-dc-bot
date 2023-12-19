@@ -1,9 +1,4 @@
 // Import env config
-// DISCORD_TOKEN = "Discord token"
-// LOG_CHANNEL = '1184743633409282088'
-// DANGER_INVITE = '702217134297841754'
-// BANNED_CHANNEL = '1186054653339783178'
-// BOSS_ACCOUNT_BANNED = '695248091602747403'
 require('dotenv').config();
 
 // Host discsord bot in hosting
