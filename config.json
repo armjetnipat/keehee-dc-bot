@@ -1,6 +1,6 @@
 {
     "discord_token": "MTE4NDcwMzQxNTE0Njc3ODYzNA.GIENRC.fIz4CbCRxZ4_x7WWp-fTfceNCOi0czf3QYKavA",
-    "danger_account": ["702217134297841754"],
+    "danger_account": ["702217134297841754", "695248091602747403"],
     "banned_account": ["695248091602747403"],
     "log_channel": {
         "command_channel": "1184743633409282088",
