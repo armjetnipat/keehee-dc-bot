@@ -31,6 +31,39 @@ const client = new Client({
 // const config = process.env;
 var config = require('./config.json');
 
+function isDangerAccont(id) {
+    for (let index = 0; index < config.danger_account.length; index++) {
+        const danger_acc = config.danger_account[index];
+        if (danger_acc == id) {
+            return true
+        }
+    }
+    return false
+}
+
+function isBannedAccont(id) {
+    for (let index = 0; index < config.banned_account.length; index++) {
+        const banned_acc = config.banned_account[index];
+        if (banned_acc == id) {
+            return true
+        }
+    }
+    return false
+}
+
+function get_time() {
+    var now = new Date();
+    var current_time = new Date(now.toLocaleString("en-US", {timeZone: "Asia/Bangkok"}));
+    return {
+        date: current_time.getDate(),
+        month: current_time.getMonth(),
+        year: current_time.getFullYear(),
+        hour: String(current_time.getHours()).padStart(2, '0'),
+        minute: String(current_time.getMinutes()).padStart(2, '0'),
+        second: String(current_time.getSeconds()).padStart(2, '0')
+    };
+}
+
 client.on('ready', async (cl) => {
     console.log(`Bot ${cl.user.tag} is running.`)
     client.user.setActivity('seawsus', { type: ActivityType.Watching })
@@ -74,26 +107,6 @@ client.on('messageCreate', async (msg) => {
     }
 
 });
-
-function isDangerAccont(id) {
-    for (let index = 0; index < config.danger_account.length; index++) {
-        const danger_acc = config.danger_account[index];
-        if (danger_acc == id) {
-            return true
-        }
-    }
-    return false
-}
-
-function isBannedAccont(id) {
-    for (let index = 0; index < config.banned_account.length; index++) {
-        const banned_acc = config.banned_account[index];
-        if (banned_acc == id) {
-            return true
-        }
-    }
-    return false
-}
 
 client.on('interactionCreate', async (interaction) => {
 
@@ -235,7 +248,7 @@ client.on('inviteDelete', async (invite) => {
             .setTitle('Invite Detect!! (Delete)')
             .addFields(
                 { name: 'Invite Link', value: `https://discord.gg/${invite.code}`, inline: true },
-                { name: 'Expire Time', value: `${current_time_format.date}/${current_time_format.month}/${current_time_format.year} ${current_time_format.hour}:${current_time_format.minute}:${current_time_format.second}`, inline: true },
+                { name: 'Expired At', value: `${current_time_format.date}/${current_time_format.month}/${current_time_format.year} ${current_time_format.hour}:${current_time_format.minute}:${current_time_format.second}`, inline: true },
             )
             .setTimestamp(invite.createdTimestamp)
             .setFooter({ text: 'Developed by JNP', iconURL: 'https://media.discordapp.net/attachments/966527454200070185/993100139109564436/jp.png' });
@@ -245,19 +258,41 @@ client.on('inviteDelete', async (invite) => {
     }
 });
 
+let voice_user = [];
+const dis_user = config.disconnect_voice;
+
+setInterval( async () => {
+
+    let current_time = get_time().hour + ':' + get_time().minute;
+    for (const user_id in dis_user) {
+
+        if (voice_user[user_id]) {
+            const member = await client.guilds.cache.get('1139177951607410728').members.fetch({ user: user_id, force: true });
+            if (dis_user[user_id].indexOf(current_time) !== -1) {
+                if (member.voice.channel) {
+                    member.voice.disconnect();
+                }
+            }
+        }
+
+    }
+}, 2000);
+
 client.on('voiceStateUpdate', async (oldState, newState) => {
 
     // Disconnected
     if (oldState.channelId && !newState.channelId) {
-        const userName = newState.member.user.tag;
+        const targetMember = newState.member;
         const channelName = oldState.channel.name;
+
+        voice_user = voice_user.filter(user_id => user_id !== targetMember.user.id);
 
         // console.log(`${userName} disconnected from the voice channel: ${channelName}`);
     }
 
     // Connected
     if (!oldState.channelId && newState.channelId) {
-        const userName = newState.member.user.tag;
+        const targetMember = newState.member;
         const channelName = newState.channel.name;
 
         if (isBannedAccont(newState.member.user.id)) {
@@ -290,12 +325,15 @@ client.on('voiceStateUpdate', async (oldState, newState) => {
                 .setTimestamp()
                 .setFooter({ text: 'Developed by JNP', iconURL: 'https://media.discordapp.net/attachments/966527454200070185/993100139109564436/jp.png' });
 
-            channel.send({ content: `<@&1159176845766434836>`, embeds: [embed] })
-
+            return channel.send({ content: `<@&1159176845766434836>`, embeds: [embed] })
         }
+
+        voice_user[targetMember.user.id] = true;
+
         // console.log(`${userName} joined the voice channel: ${channelName}`);
+
     }
 
 });
 
-client.login(config.discord_token);
+client.login(process.env['discord_token']);
