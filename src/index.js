@@ -1,13 +1,48 @@
 // Import env config
 require('dotenv').config();
 
+const fs = require('node:fs');
+
 // Host discsord bot in hosting
 const express = require('express');
 const express_app = express();
 const express_port = 3000;
+const url_file = require('./url.json');
+
+express_app.use(express.json())
 
 express_app.get('/', (req, res) => {
     res.send('Server is running.')
+});
+
+express_app.post('/shorten', async (req, res) => {
+
+    const fullUrl = req.query.fullUrl
+    const shortUrl = req.query.shortUrl
+
+    const jsonData = fs.readFileSync('src/url.json', 'utf-8');
+    const url_data = JSON.parse(jsonData);
+
+    for (const shortenUrl in url_data) {
+        if (shortUrl == shortenUrl) {
+            return res.sendStatus(406)
+        }
+    }
+
+    url_data[shortUrl] = fullUrl;
+    const updatedJsonData = JSON.stringify(url_data, null, 2);
+    fs.writeFileSync('src/url.json', updatedJsonData, 'utf-8');
+    return res.sendStatus(200)
+});
+
+express_app.get('/:shortenUrl', async (req, res) => {
+    const shortUrl = req.params.shortenUrl
+    for (const shortenUrl in url_file) {
+        if (shortUrl == shortenUrl) {
+            return res.redirect(url_file[shortenUrl])
+        }
+    }
+    return res.sendStatus(404)
 });
 
 express_app.listen(express_port, () => {
@@ -64,9 +99,44 @@ function get_time() {
     };
 }
 
+function generateRandomString(length) {
+    var result = '';
+    var characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    var charactersLength = characters.length;
+    for (var i = 0; i < length; i++) {
+        result += characters.charAt(Math.floor(Math.random() * charactersLength));
+    }
+    return result;
+}
+
 client.on('ready', async (cl) => {
-    console.log(`Bot ${cl.user.tag} is running.`)
-    client.user.setActivity('seawsus', { type: ActivityType.Watching })
+    console.log(`Bot ${cl.user.tag} is running.`);
+    client.user.setActivity('seawsus', { type: ActivityType.Watching });
+
+    const commandData = {
+        name: 'url',
+        description: 'Custom Shorten URL',
+        options: [
+            {
+                name: 'full',
+                description: 'Full URL Link',
+                type: 3,
+                required: true
+            },
+            {
+                name: 'short',
+                description: 'Shorten URL',
+                type: 3,
+                required: false
+            }
+        ]
+    }
+
+    const guild = cl.guilds.cache.get('1139177951607410728');
+    guild.commands.create(commandData)
+        .then(command => console.log(`Slash command created: ${command.name}`))
+        .catch(console.error);
+
 });
 
 client.on('messageCreate', async (msg) => {
@@ -109,6 +179,26 @@ client.on('messageCreate', async (msg) => {
 });
 
 client.on('interactionCreate', async (interaction) => {
+
+    if (interaction.isChatInputCommand()) {
+        if (interaction.commandName == 'url') {
+            const fullUrl = interaction.options.getString('full');
+            const shortUrl = interaction.options.getString('short') || generateRandomString(4);
+            const jsonData = fs.readFileSync('src/url.json', 'utf-8');
+            const url_data = JSON.parse(jsonData);
+
+            for (const shortenUrl in url_data) {
+                if (shortUrl == shortenUrl) {
+                    return interaction.reply('Shorten URL is already exist')
+                }
+            }
+
+            url_data[shortUrl] = fullUrl;
+            const updatedJsonData = JSON.stringify(url_data, null, 2);
+            fs.writeFileSync('src/url.json', updatedJsonData, 'utf-8');
+            return interaction.reply('Shorten URL has been created: ' + 'https://jokeped.net/' + shortUrl);
+        }
+    }
 
     if (interaction.isButton()) {
         if (interaction.customId == 'delete-invite-btn') {
