@@ -115,7 +115,7 @@ function generateRandomString(length) {
 
 client.on('ready', async (cl) => {
     console.log(`Bot ${cl.user.tag} is running.`);
-    client.user.setActivity('seawsus', { type: ActivityType.Watching });
+    client.user.setActivity('seawsus', { type: ActivityType.Streaming, url: 'https://www.youtube.com/watch?v=_e9yMqmXWo0' });
 
     const commandData = {
         name: 'url',
