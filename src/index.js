@@ -50,8 +50,8 @@ express_app.listen(express_port, () => {
 });
 
 // Discord Coding
-const { Client, IntentsBitField, ActivityType, ButtonBuilder, ButtonStyle, ActionRowBuilder } = require('discord.js');
-const { EmbedBuilder } = require('discord.js');
+const { Client, IntentsBitField, ActivityType, Partials, EmbedBuilder, ButtonBuilder, ButtonStyle, ActionRowBuilder } = require('discord.js');
+
 const client = new Client({
     intents: [
         IntentsBitField.Flags.Guilds,
@@ -59,11 +59,15 @@ const client = new Client({
         IntentsBitField.Flags.GuildMembers,
         IntentsBitField.Flags.GuildInvites,
         IntentsBitField.Flags.GuildVoiceStates,
-        IntentsBitField.Flags.MessageContent
+        IntentsBitField.Flags.MessageContent,
+        IntentsBitField.Flags.DirectMessages
+    ],
+    partials: [
+        Partials.Channel,
+        Partials.Message
     ]
 });
 
-// const config = process.env;
 var config = require('./config.json');
 
 function isDangerAccont(id) {
@@ -140,6 +144,37 @@ client.on('ready', async (cl) => {
 });
 
 client.on('messageCreate', async (msg) => {
+
+    if (msg.channel.type == 1) {
+        if (msg.content.startsWith('!คน')) {
+            const guild = client.guilds.cache.get('1139177951607410728');
+
+            const voiceChannel = guild.channels.cache.get('1184554702994690118')
+            const voiceMembers = voiceChannel.members;
+
+            if (voiceMembers.size === 0) {
+                // msg.reply('No members in the voice channel.');
+                return;
+            }
+
+            
+            const usersInVoiceChannel = voiceMembers.map(member => ({
+                user: member.user.tag + '\n'
+            }));
+
+            const users_in_channel = []
+
+            for (const user of usersInVoiceChannel) {
+                users_in_channel.push(user.user)
+            }
+
+            var formated_users = users_in_channel.reduce(function(pre, next) {
+                return pre + ' ' + next;
+            });
+
+            msg.reply(`คนที่อยู่ในดิสตอนนี้มี ${voiceMembers.size} คน คือ:\n\n${formated_users}`);
+        }
+    }
 
     if (msg.author.bot) return;
 
