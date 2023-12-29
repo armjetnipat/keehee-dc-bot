@@ -149,22 +149,38 @@ client.on('messageCreate', async (msg) => {
         if (msg.content.startsWith('!คน')) {
             const guild = client.guilds.cache.get('1139177951607410728');
 
-            const voiceChannel = guild.channels.cache.get('1184554702994690118')
-            const voiceMembers = voiceChannel.members;
+            const users_in_channel = []
 
-            if (voiceMembers.size === 0) {
-                // msg.reply('No members in the voice channel.');
-                return;
-            }
+            const voiceChannel_private = guild.channels.cache.get('1184554702994690118')
+            const voiceMembers_private = voiceChannel_private.members;
 
-            
-            const usersInVoiceChannel = voiceMembers.map(member => ({
+            const usersInVoiceChannel_private = voiceMembers_private.map(member => ({
                 user: member.user.tag + '\n'
             }));
 
-            const users_in_channel = []
+            for (const user of usersInVoiceChannel_private) {
+                users_in_channel.push(user.user)
+            }
 
-            for (const user of usersInVoiceChannel) {
+            const voiceChannel_callseaw = guild.channels.cache.get('1139177951607410732')
+            const voiceMembers_callseaw = voiceChannel_callseaw.members;
+
+            const usersInVoiceChannel_callseaw = voiceMembers_callseaw.map(member => ({
+                user: member.user.tag + '\n'
+            }));
+
+            for (const user of usersInVoiceChannel_callseaw) {
+                users_in_channel.push(user.user)
+            }
+
+            const voiceChannel_talkseaw = guild.channels.cache.get('1139216658964172811')
+            const voiceMembers_talkseaw = voiceChannel_talkseaw.members;
+
+            const usersInVoiceChannel_talkseaw = voiceMembers_talkseaw.map(member => ({
+                user: member.user.tag + '\n'
+            }));
+
+            for (const user of usersInVoiceChannel_talkseaw) {
                 users_in_channel.push(user.user)
             }
 
@@ -172,7 +188,7 @@ client.on('messageCreate', async (msg) => {
                 return pre + ' ' + next;
             });
 
-            msg.reply(`คนที่อยู่ในดิสตอนนี้มี ${voiceMembers.size} คน คือ:\n\n${formated_users}`);
+            msg.reply(`คนที่อยู่ในดิสตอนนี้มี ${users_in_channel.length} คน คือ:\n\n${formated_users}`);
         }
     }
 
