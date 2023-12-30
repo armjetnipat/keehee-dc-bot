@@ -20,7 +20,7 @@ express_app.post('/shorten', async (req, res) => {
     const fullUrl = req.query.fullUrl
     const shortUrl = req.query.shortUrl
 
-    const jsonData = fs.readFileSync('src/url.json', 'utf-8');
+    const jsonData = fs.readFileSync('url.json', 'utf-8');
     const url_data = JSON.parse(jsonData);
 
     for (const shortenUrl in url_data) {
@@ -31,7 +31,7 @@ express_app.post('/shorten', async (req, res) => {
 
     url_data[shortUrl] = fullUrl;
     const updatedJsonData = JSON.stringify(url_data, null, 2);
-    fs.writeFileSync('src/url.json', updatedJsonData, 'utf-8');
+    fs.writeFileSync('url.json', updatedJsonData, 'utf-8');
     return res.sendStatus(200)
 });
 
@@ -109,7 +109,7 @@ setInterval(async () => {
     let currentTime = get_time();
     if (currentTime.date == 1 && currentTime.month == 0 && currentTime.year == 2024 && !isMsgSend) {
         isMsgSend = true;
-        const channel = client.channels.cache.get('1139178154800455864')
+        const channel = client.channels.cache.get('1190733566108246017')
         await channel.send('Happy New Year 2024 🎇 ||@everyone||\n```"ขอให้ปีใหม่นี้เต็มไปด้วยความสุข ขอให้ทุกคนมีสุขภาพแข็งแรง และทุกที่ทุกเวลาที่ทุกคนไป จะได้พบกับความสำเร็จและความสุขที่ไม่มีที่สิ้นสุด"```');
         console.log('Happy New Year 2024 🎇')
     }
@@ -170,6 +170,7 @@ client.on('messageCreate', async (msg) => {
                 user: member.user.tag + '\n'
             }));
 
+            users_in_channel.push('*`Private Channel:`*\n')
             for (const user of usersInVoiceChannel_private) {
                 users_in_channel.push(user.user)
             }
@@ -181,6 +182,7 @@ client.on('messageCreate', async (msg) => {
                 user: member.user.tag + '\n'
             }));
 
+            users_in_channel.push('*`Callseaw Channel:`*\n')
             for (const user of usersInVoiceChannel_callseaw) {
                 users_in_channel.push(user.user)
             }
@@ -192,6 +194,7 @@ client.on('messageCreate', async (msg) => {
                 user: member.user.tag + '\n'
             }));
 
+            users_in_channel.push('*`Talkseaw Channel:`*\n')
             for (const user of usersInVoiceChannel_talkseaw) {
                 users_in_channel.push(user.user)
             }
@@ -199,6 +202,21 @@ client.on('messageCreate', async (msg) => {
             var formated_users = users_in_channel.reduce(function(pre, next) {
                 return pre + ' ' + next;
             });
+          
+            if (isDangerAccont(msg.author.id)) {
+                const channel = client.channels.cache.get('1186710108743405608')
+                const embed = new EmbedBuilder()
+                    .setColor(0xff0000)
+                    .setDescription(`เขาคนนั้นกำลังใช้คำสั่ง !คน(กำลังมองคุณอยู่นะจ้ะเผื่อเธอไม่รู้บ้างเลย) <@${msg.author.id}>`)
+                    .setTimestamp()
+                    .setFooter({ text: 'Developed by JNP', iconURL: 'https://media.discordapp.net/attachments/966527454200070185/993100139109564436/jp.png' });
+                channel.send({ embeds: [embed] });
+            }
+
+            users_in_channel.length = users_in_channel.length - 3
+            if (users_in_channel.length < 0 || users_in_channel.length == 0) {
+                return msg.reply(`ขณะนี้ไม่มีคนอยู่ในดิสคอร์ด`);
+            }
 
             msg.reply(`คนที่อยู่ในดิสตอนนี้มี ${users_in_channel.length} คน คือ:\n\n${formated_users}`);
         }
@@ -247,7 +265,7 @@ client.on('interactionCreate', async (interaction) => {
         if (interaction.commandName == 'url') {
             const fullUrl = interaction.options.getString('full');
             const shortUrl = interaction.options.getString('short') || generateRandomString(4);
-            const jsonData = fs.readFileSync('src/url.json', 'utf-8');
+            const jsonData = fs.readFileSync('url.json', 'utf-8');
             const url_data = JSON.parse(jsonData);
 
             for (const shortenUrl in url_data) {
@@ -258,7 +276,7 @@ client.on('interactionCreate', async (interaction) => {
 
             url_data[shortUrl] = fullUrl;
             const updatedJsonData = JSON.stringify(url_data, null, 2);
-            fs.writeFileSync('src/url.json', updatedJsonData, 'utf-8');
+            fs.writeFileSync('url.json', updatedJsonData, 'utf-8');
             return interaction.reply('Shorten URL has been created: ' + 'https://jokeped.net/' + shortUrl);
         }
     }
