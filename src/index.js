@@ -103,6 +103,18 @@ function get_time() {
     };
 }
 
+// New year 2024 send message
+let isMsgSend = false;
+setInterval(async () => {
+    let currentTime = get_time();
+    if (currentTime.date == 1 && currentTime.month == 0 && currentTime.year == 2024 && !isMsgSend) {
+        isMsgSend = true;
+        const channel = client.channels.cache.get('1139178154800455864')
+        await channel.send('Happy New Year 2024 🎇 ||@everyone||\n```"ขอให้ปีใหม่นี้เต็มไปด้วยความสุข ขอให้ทุกคนมีสุขภาพแข็งแรง และทุกที่ทุกเวลาที่ทุกคนไป จะได้พบกับความสำเร็จและความสุขที่ไม่มีที่สิ้นสุด"```');
+        console.log('Happy New Year 2024 🎇')
+    }
+}, 5000);
+
 function generateRandomString(length) {
     var result = '';
     var characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
