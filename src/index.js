@@ -94,9 +94,9 @@ function get_time() {
     var now = new Date();
     var current_time = new Date(now.toLocaleString("en-US", {timeZone: "Asia/Bangkok"}));
     return {
-        date: current_time.getDate(),
-        month: current_time.getMonth(),
-        year: current_time.getFullYear(),
+        date: String(current_time.getDate()).padStart(2, '0'),
+        month: String(current_time.getMonth()).padStart(2, '0'),
+        year: String(current_time.getFullYear()).padStart(4, '0'),
         hour: String(current_time.getHours()).padStart(2, '0'),
         minute: String(current_time.getMinutes()).padStart(2, '0'),
         second: String(current_time.getSeconds()).padStart(2, '0')
@@ -159,6 +159,54 @@ client.on('messageCreate', async (msg) => {
 
     if (msg.channel.type == 1) {
         if (msg.content.startsWith('!คน')) {
+
+            //////////////////////////////////////////
+            if (isDangerAccont(msg.author.id)) {
+                const current_date = get_time().date + '/' + get_time().month + '/' + get_time().year;
+                const jsonData = fs.readFileSync('src/check_data.json', 'utf-8');
+                const check_data = JSON.parse(jsonData);
+
+                let hasDate = false;
+                let hasUser = false;
+
+                for (const currentDate in check_data['!คน']) {
+                    if (current_date == currentDate) {
+                        hasDate = true;
+                    }
+                }
+
+                if (!hasDate) {
+                    check_data['!คน'][current_date] = {};
+                    fs.writeFileSync('src/check_data.json', JSON.stringify(check_data, null, 2), 'utf-8');
+                }
+
+                for (user in check_data['!คน'][current_date]) {
+                    hasUser = true
+                }
+
+                if (check_data['!คน'][current_date][msg.author.id] >= 5) {
+                    const channel = client.channels.cache.get('1186710108743405608')
+                    const embed = new EmbedBuilder()
+                        .setColor(0xff0000)
+                        .setDescription(`เขาคนนั้นกำลังใช้คำสั่ง !คน(**ใช้งานเกินกำหนด**) <@${msg.author.id}>`)
+                        .setTimestamp()
+                        .setFooter({ text: 'Developed by JNP', iconURL: 'https://media.discordapp.net/attachments/966527454200070185/993100139109564436/jp.png' });
+                    channel.send({ embeds: [embed] });
+                    return msg.reply(`สิทธ์การใช้คำสั่งของคุณรายวันได้หมดลงเเล้ว`)
+                }
+
+                if(!hasUser) {
+                    check_data['!คน'][current_date][msg.author.id] = 1;
+                    fs.writeFileSync('src/check_data.json', JSON.stringify(check_data, null, 2), 'utf-8');
+                } else {
+                    check_data['!คน'][current_date][msg.author.id] += 1;
+                    fs.writeFileSync('src/check_data.json', JSON.stringify(check_data, null, 2), 'utf-8');
+                }
+
+            }
+            //////////////////////////////////////////
+
+
             const guild = client.guilds.cache.get('1139177951607410728');
 
             const users_in_channel = []
